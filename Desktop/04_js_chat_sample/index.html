@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/list.css">
+  <link href="https://fonts.googleapis.com/earlyaccess/kokoro.css" rel="stylesheet">
+
+
+  <title>TODO-List</title>
+</head>
+
+<body>
+  <h1>todoリスト</h1>
+  <!-- 入力場所を作成 -->
+  <div>私の予定
+    <input id="mytask" type="text">
+  </div>
+  <!-- <div>夫の予定
+    <input id="t_task" type="text">
+  </div>
+  <div>子供たち予定
+    <input id="kids_task" type="text">
+  </div> -->
+  <button id="send">send</button>
+
+  <!-- リストの出力場所 -->
+  <div class="table">
+    <div class="myTable">
+      <h2>わたしの todo</h2>
+      <ul id="myoutput"></ul>
+    </div>
+    <!-- <div class="tTable">
+      <h2>夫の todo</h2>
+      <ul id="tOutput"></ul>
+    </div>
+    <div class="kidsTable">
+      <h2>こどもたちの todo</h2>
+      <ul id="kidsOutput"></ul>
+    </div> -->
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <script>
+    // 日時をいい感じの形式にする関数
+    function convertTimestampToDatetime(timestamp) {
+      const _d = timestamp ? new Date(timestamp * 1000) : new Date();
+      const Y = _d.getFullYear();
+      const m = (_d.getMonth() + 1).toString().padStart(2, '0');
+      const d = _d.getDate().toString().padStart(2, '0');
+      const H = _d.getHours().toString().padStart(2, '0');
+      const i = _d.getMinutes().toString().padStart(2, '0');
+      const s = _d.getSeconds().toString().padStart(2, '0');
+      return `${Y}/${m}/${d} ${H}:${i}:${s}`;
+    }
+  </script>
+
+  <!-- 以下はfirebaseのコードを貼り付け -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      onSnapshot,
+      query,
+      orderBy,
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "todo-list-8635e.firebaseapp.com",
+      projectId: "todo-list-8635e",
+      storageBucket: "todo-list-8635e.appspot.com",
+      messagingSenderId: "166738979700",
+      appId: "1:166738979700:web:abc26d974e57d2e332da21"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);
+
+    $('#send').on('click', function () {
+      //送信に必要な処理
+      const Data = {
+        mytodo: $('#mytask').val(),
+        time: serverTimestamp(),
+      };
+      addDoc(collection(db, 'todo'), Data);
+      $('#mytask').val('');
+    });
+
+    // データを取得する処理
+    onSnapshot(collection(db, 'todo'), (querySnapshot) => {
+      console.log(querySnapshot.docs);
+
+      const documents = [];
+      querySnapshot.docs.forEach(function (doc) {
+        const document = {
+          id: doc.id,
+          data: doc.data(),
+        };
+        documents.push(document);
+      });
+      console.log(documents);
+
+      
+     const myhtmlElements = [];
+    
+     documents.forEach(function (document) {
+        myhtmlElements.push(
+          `<li id='${document.id}'>
+            <p>${document.data.mytodo}at ${convertTimestampToDatetime(document.data.time.seconds)}</p>
+            </li>`,
+           `<button id='delete'>完了</button>`
+        );
+     })
+
+      $('#myoutput').html(myhtmlElements);
+    });
+    // データを消去したい
+    const element = document.getElementById(`${document.id}`);
+    console.log(element)
+    $('#delete').on('click',function(){
+      element.remove();
+      $('${document.id}').val('')
+    });
+  
+  </script>
+</body>
+</html>
